@@ -39,7 +39,6 @@ def get_embed_details(request):
     return HttpResponse(result_content)
 
 def get_signature_url(message):
-    #EmbedSecret = "G6zjbRHBGDzzsSoLwmRs9o7rqZJ2njIe"
     EmbedSecret = models.EmbedProperties.EmbedSecret
     keyBytes = bytes(EmbedSecret.encode('utf-8'))
     messageBytes = bytes(message.encode('utf-8'))
