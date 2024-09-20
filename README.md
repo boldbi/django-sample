@@ -36,7 +36,7 @@ The samples require the following to run:
 
 * Now run the Django sample.
 
-Please refer to the [help documentation](https://help.boldbi.com/embedded-bi/javascript-based/samples/v3.3.40-or-later/other-platform-samples/#django-sample-to-embed-the-dashboardhttps://github.com/boldbi/blazor-server-sample.git) to know how to run the sample.
+Please refer to the [help documentation](https://help.boldbi.com/embedded-bi/javascript-based/samples/v3.3.40-or-later/other-platform-samples/#django-sample-to-embed-the-dashboard?utm_source=github&utm_medium=backlinks) to know how to run the sample.
 
 ## Online Demos
 
