@@ -1,31 +1,75 @@
 <!DOCTYPE html>
-    <html>
-    
-    <head>
-        <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
-        <script type="text/javascript" src="https://cdn.boldbi.com/embedded-sdk/v6.1.8/boldbi-embed.js"></script>        
-        <script type="text/javascript">
-            $(document).ready(function(){
-            this.dashboard = BoldBI.create(
-                        { serverUrl:'{{server_url}}',
-                         dashboardId:'{{dashboard_id}}',
-                         embedContainerId: 'dashboard',
-                         embedType:'component',
-                         environment:'onpremise',
-                         expirationTime: 100000,
-                         authorizationServer:{url: "{% url 'get_embed_details'%}" },
-                         dashboardSettings:{showExport: false,showRefresh: false,showMoreOption: false}
-                        });
-            console.log(this.dashboard);
-            this.dashboard.loadDashboard();
+<html>
+
+<head>
+    <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js'></script>
+    <script type="text/javascript" src="https://cdn.boldbi.com/embedded-sdk/v15.1.65/boldbi-embed.js"></script>
+    <script type="text/javascript">
+        async function getEmbedToken() {
+            try {
+                const resp = await fetch("{% url 'tokenGeneration' %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!resp.ok) throw new Error('Token request failed: ' + resp.status);
+
+                const token = await resp.text();
+                return token;
+            } catch (err) {
+                console.error('getEmbedToken error:', err);
+                throw err;
+            }
+        }
+
+        function renderDashboard(data) {
+            return getEmbedToken()
+                .then(accessToken => {
+                    const dashboard = BoldBI.create({
+                        serverUrl: data.ServerUrl + "/" + data.SiteIdentifier,
+                        dashboardId: data.DashboardId,
+                        embedContainerId: 'dashboard',
+                        embedToken: accessToken
                     });
-        </script>
-    </head>
-    
-    <body >
-        <div id="viewer-section">
-            <div id="dashboard"></div>
-        </div>
-    </body>
-    
-    </html>
+
+                    dashboard.loadDashboard();
+                    return dashboard;
+                })
+                .catch(err => {
+                    console.error('Error rendering dashboard:', err);
+                    throw err;
+                });
+        }
+
+        async function fetchEmbedAndLoad() {
+            try {
+                const response = await fetch("{% url 'getdetails' %}");
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                // Transform keys to PascalCase expected by the embed API
+                const transformed = {
+                    DashboardId: data.DashboardId || data.dashboardId || data.dashboard_id,
+                    EmbedType: data.EmbedType || data.embedType || data.embed_type || 'component',
+                    Environment: data.Environment || data.environment || 'onpremise',
+                    ServerUrl: data.ServerUrl || data.serverUrl || data.server_url,
+                    SiteIdentifier: data.SiteIdentifier || data.siteIdentifier || data.site_identifier
+                };
+
+                await renderDashboard(transformed);
+            } catch (error) {
+                console.error('Failed to load embed config:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchEmbedAndLoad);
+    </script>
+</head>
+
+<body>
+    <div id="viewer-section">
+        <div id="dashboard"></div>
+    </div>
+</body>
+
+</html>
